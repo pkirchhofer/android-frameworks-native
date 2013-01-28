@@ -150,6 +150,7 @@ SurfaceFlinger::SurfaceFlinger()
         mDebugInTransaction(0),
         mLastTransactionTime(0),
         mBootFinished(false),
+        mPrefer16bpp(0),
         mPrimaryHWVsyncEnabled(false),
         mHWVsyncAvailable(false),
         mDaltonize(false)
@@ -158,6 +159,9 @@ SurfaceFlinger::SurfaceFlinger()
 
     // debugging stuff...
     char value[PROPERTY_VALUE_MAX];
+
+    property_get("persist.sys.prefer_16bpp", value, "1");
+    mPrefer16bpp = atoi(value);
 
     property_get("ro.bq.gpu_to_cpu_unsupported", value, "0");
     mGpuToCpuSupported = !atoi(value);
@@ -173,6 +177,7 @@ SurfaceFlinger::SurfaceFlinger()
             mDebugDDMS = 0;
         }
     }
+
     ALOGI_IF(mDebugRegion, "showupdates enabled");
     ALOGI_IF(mDebugDDMS, "DDMS debugging enabled");
 }
@@ -2136,7 +2141,7 @@ status_t SurfaceFlinger::createNormalLayer(const sp<Client>& client,
 #ifdef NO_RGBX_8888
         format = PIXEL_FORMAT_RGB_565;
 #else
-        format = PIXEL_FORMAT_RGBX_8888;
+        format = mPrefer16bpp ? PIXEL_FORMAT_RGB_565 : PIXEL_FORMAT_RGBX_8888;
 #endif
         break;
     }
